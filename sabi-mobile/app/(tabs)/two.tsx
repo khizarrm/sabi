@@ -1,14 +1,28 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, FlatList, View as RNView } from 'react-native';
 
 import EditScreenInfo from '@/components/EditScreenInfo';
 import { Text, View } from '@/components/Themed';
 
-export default function TabTwoScreen() {
+const sampleActivities = [
+  { id: '1', title: 'Booked: Barber - 3pm' },
+  { id: '2', title: 'Completed: House Cleaning' },
+  { id: '3', title: 'Payment received: $80' },
+];
+
+export default function ActivitiesScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tab Two</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="app/(tabs)/two.tsx" />
+      <Text style={styles.title}>Recent Activities</Text>
+      <FlatList
+        data={sampleActivities}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContent}
+        renderItem={({ item }) => (
+          <RNView style={styles.card}>
+            <Text style={styles.cardTitle}>{item.title}</Text>
+          </RNView>
+        )}
+      />
     </View>
   );
 }
@@ -20,12 +34,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 22,
+    fontWeight: '700',
+    marginTop: 16,
+    marginBottom: 12,
   },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
+  listContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    gap: 12,
+    width: '100%',
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    padding: 16,
+    marginHorizontal: 16,
+  },
+  cardTitle: {
+    fontSize: 16,
+    color: '#111827',
+    fontWeight: '600',
   },
 });

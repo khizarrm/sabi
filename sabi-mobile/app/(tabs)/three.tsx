@@ -1,14 +1,24 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 
 import EditScreenInfo from '@/components/EditScreenInfo';
 import { Text, View } from '@/components/Themed';
 
-export default function TabOneScreen() {
+export default function ProfileScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tab three</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="app/(tabs)/index.tsx" />
+      <Text style={styles.title}>Your Profile</Text>
+      <Text style={styles.subtitle}>Manage account and preferences</Text>
+      <View style={styles.section}>
+        <TouchableOpacity style={styles.row}> 
+          <Text style={styles.rowText}>Edit Profile</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.row}> 
+          <Text style={styles.rowText}>Payment Methods</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.row}> 
+          <Text style={styles.rowText}>Settings</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -20,12 +30,31 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 22,
+    fontWeight: '700',
+    marginBottom: 8,
   },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
+  subtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 16,
+  },
+  section: {
+    width: '100%',
+    paddingHorizontal: 16,
+  },
+  row: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  rowText: {
+    fontSize: 16,
+    color: '#111827',
+    fontWeight: '600',
   },
 });

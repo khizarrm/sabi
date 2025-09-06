@@ -25,10 +25,7 @@ export default function LoginScreen() {
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-      <KeyboardAvoidingView 
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
+      <View style={styles.container}>
         {/* Background with gradient overlay */}
         <View style={styles.backgroundContainer}>
           {/* Replace this View with ImageBackground when you add the image */}
@@ -73,20 +70,20 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
         </View>
+      </View>
 
-        {/* Auth Modals */}
-        <AuthModal
-          visible={loginModalVisible}
-          onClose={() => setLoginModalVisible(false)}
-          initialMode="login"
-        />
-        
-        <AuthModal
-          visible={signupModalVisible}
-          onClose={() => setSignupModalVisible(false)}
-          initialMode="signup"
-        />
-      </KeyboardAvoidingView>
+      {/* Auth Modals (outside KeyboardAvoidingView to avoid keyboard pushing sheet) */}
+      <AuthModal
+        visible={loginModalVisible}
+        onClose={() => setLoginModalVisible(false)}
+        initialMode="login"
+      />
+      
+      <AuthModal
+        visible={signupModalVisible}
+        onClose={() => setSignupModalVisible(false)}
+        initialMode="signup"
+      />
     </>
   );
 }

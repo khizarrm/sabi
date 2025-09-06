@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useCallback, useMemo, forwardRef, useImperativeHandle, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,8 @@ import { router } from 'expo-router';
 
 type AuthModalProps = {
   initialMode?: 'login' | 'signup';
+  visible?: boolean;
+  onClose?: () => void;
 };
 
 export interface AuthModalRef {
@@ -22,7 +24,7 @@ export interface AuthModalRef {
   dismiss: () => void;
 }
 
-const AuthModal = forwardRef<AuthModalRef, AuthModalProps>(({ initialMode = 'login' }, ref) => {
+const AuthModal = forwardRef<AuthModalRef, AuthModalProps>(({ initialMode = 'login', visible, onClose }, ref) => {
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -45,6 +47,15 @@ const AuthModal = forwardRef<AuthModalRef, AuthModalProps>(({ initialMode = 'log
     dismiss: () => bottomSheetModalRef.current?.dismiss(),
   }));
 
+  // Open/close when `visible` changes
+  useEffect(() => {
+    if (visible) {
+      bottomSheetModalRef.current?.present();
+    } else {
+      bottomSheetModalRef.current?.dismiss();
+    }
+  }, [visible]);
+
   const resetForm = useCallback(() => {
     setEmail('');
     setPassword('');
@@ -55,7 +66,8 @@ const AuthModal = forwardRef<AuthModalRef, AuthModalProps>(({ initialMode = 'log
   const handleClose = useCallback(() => {
     resetForm();
     bottomSheetModalRef.current?.dismiss();
-  }, [resetForm]);
+    onClose?.();
+  }, [resetForm, onClose]);
 
   const handleLogin = useCallback(async () => {
     if (!email || !password) {
@@ -116,13 +128,14 @@ const AuthModal = forwardRef<AuthModalRef, AuthModalProps>(({ initialMode = 'log
       snapPoints={snapPoints}
       enablePanDownToClose
       enableDynamicSizing={false}
-      keyboardBehavior="interactive"
+      keyboardBehavior="fillParent"
       keyboardBlurBehavior="restore"
       android_keyboardInputMode="adjustResize"
       backdropComponent={renderBackdrop}
       backgroundStyle={styles.bottomSheetBackground}
       handleIndicatorStyle={styles.handleIndicator}
       style={styles.bottomSheet}
+      onDismiss={onClose}
     >
       <BottomSheetView style={[styles.contentContainer, { paddingBottom: insets.bottom || 20 }]}>
         {/* Header */}
@@ -252,6 +265,8 @@ const styles = StyleSheet.create({
   },
   bottomSheetBackground: {
     backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
   },
   handleIndicator: {
     backgroundColor: '#E5E7EB',
@@ -271,8 +286,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 26,
+    fontFamily: 'Jost_700Bold',
     color: '#1a1a1a',
   },
   closeButton: {
