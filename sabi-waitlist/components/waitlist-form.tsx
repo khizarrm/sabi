@@ -91,7 +91,6 @@ export function WaitlistForm({ compact = false }: WaitlistFormProps) {
               <p className="text-white/60 font-light">You're now on the Sabi waitlist</p>
               <div className="flex items-center justify-center gap-2 text-[#004225] font-medium">
                 <Users className="w-4 h-4" />
-                <span>Position #{waitlistCount.toLocaleString()}</span>
               </div>
             </div>
           </div>
@@ -105,7 +104,6 @@ export function WaitlistForm({ compact = false }: WaitlistFormProps) {
       <div className="text-center">
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#004225]/20 backdrop-blur-sm rounded-full border border-[#004225]/30">
           <Users className="w-4 h-4 text-[#004225]" />
-          <span className="text-white/80 font-medium">{waitlistCount.toLocaleString()} people waiting</span>
         </div>
       </div>
 
