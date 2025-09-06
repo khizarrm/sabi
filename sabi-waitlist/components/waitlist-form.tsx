@@ -159,7 +159,7 @@ export function WaitlistForm({ compact = false }: WaitlistFormProps) {
           <Users className="w-4 h-4 text-[#004225]" />
           {waitlistCount !== null ? (
             <span className="text-[#004225] text-sm font-medium">
-              Join 15+ others
+              Join {waitlistCount}+ others
             </span>
           ) : (
             <span className="text-[#004225] text-sm font-medium">Loading...</span>
@@ -202,7 +202,7 @@ export function WaitlistForm({ compact = false }: WaitlistFormProps) {
         {compact ? (
           <p className="text-white/60 text-lg font-medium">Join our waitlist for early access</p>
         ) : (
-          <p className="text-white/60 text-lg font-medium">$10 CAD to join</p>
+          <p className="text-white/60 text-lg font-medium">$10 CAD to join waitlist</p>
         )}
         <p className="text-white/40 text-sm font-light tracking-wide">
           Early access • Priority matching • Free first task

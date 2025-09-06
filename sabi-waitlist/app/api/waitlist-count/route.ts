@@ -1,14 +1,20 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/hooks/supabase";
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+// Temporarily use service role key for debugging RLS
+const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
 export async function GET() {
   try {
     console.log("yeeehrhehrkj")
     const { count, error } = await supabase
       .from("waitlist")
-      .select("*", { count: "exact" });
+      .select("*", { count: "exact", head: true });
 
-    console.log("Supabase waitlist count response:", { count, error });
+    console.log("Supabase waitlist count response (using service_role key):", { count, error });
 
     if (error) {
       console.error("Error fetching waitlist count:", error);
