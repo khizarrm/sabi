@@ -23,13 +23,13 @@ export function ChatMockup() {
               <h3 className="font-jost font-medium text-white">Marcus T.</h3>
               <div className="flex items-center gap-1">
                 <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                <span className="text-sm text-white/70">4.9 • Tire Expert</span>
+                <span className="text-sm text-white/70">4.9</span>
               </div>
             </div>
           </div>
           <div className="bg-gray-800/60 backdrop-blur-sm rounded-lg p-3 border border-gray-700/30">
             <p className="text-white font-medium">Flat tire replacement</p>
-            <p className="text-gray-300 mt-1">Leeds University Parking Lot • $45</p>
+            <p className="text-gray-300 mt-1"> Carleton University - Leeds Parking Lot • $45</p>
           </div>
         </div>
 

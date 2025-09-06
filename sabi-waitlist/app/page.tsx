@@ -29,7 +29,7 @@ export default function Home() {
 
             <p className="text-lg lg:text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed font-light">
               Tired of unreliable help? Get{" "}
-              <span className="text-gray-200 font-medium">ID-verified, qualified professionals</span> for any task. From
+              <span className="text-gray-200 font-medium">ID-verified</span> for any task. From
               tire changes to grocery runs - we've got you covered.
             </p>
           </div>

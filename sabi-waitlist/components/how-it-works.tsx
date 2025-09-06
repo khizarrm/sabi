@@ -45,17 +45,6 @@ export function HowItWorks() {
           </div>
         ))}
       </div>
-
-      <div className="mt-16 text-center">
-        <div className="glass-card p-8 max-w-2xl mx-auto border border-emerald-800/20">
-          <p className="text-white/90 font-medium mb-3 text-lg">Why choose Sabi?</p>
-          <p className="text-white/70 leading-relaxed">
-            All our professionals are <span className="text-emerald-300 font-medium">ID-verified</span>,
-            <span className="text-emerald-300 font-medium"> background-checked</span>, and
-            <span className="text-emerald-300 font-medium"> available on-call</span> for your peace of mind.
-          </p>
-        </div>
-      </div>
-    </div>
+     </div>
   )
 }
