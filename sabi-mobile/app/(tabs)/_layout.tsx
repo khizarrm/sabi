@@ -83,12 +83,12 @@ export default function TabLayout() {
         }}
       />
 
-      {/* Profile - Right */}
+      {/* Available Tasks - Right */}
       <Tabs.Screen
         name="three"
         options={{
-          title: 'Profile',
-          tabBarIcon: ({ color, focused }) => <TabBarIcon name="user" color={color} focused={focused} />,
+          title: 'Available',
+          tabBarIcon: ({ color, focused }) => <TabBarIcon name="search" color={color} focused={focused} />,
           headerShown: false,
         }}
       />

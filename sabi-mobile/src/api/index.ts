@@ -50,7 +50,7 @@ export {
   
   // Types
   type CreateTaskData,
-  type Task,
+  type Task as TaskFromUtils,
   type TaskResponse,
 } from './taskUtils';
 
@@ -77,7 +77,7 @@ export {
   // Types
   type PaymentIntentData,
   type PaymentIntentResponse,
-  type PaymentStatus,
+  type PaymentStatus as PaymentStatusFromUtils,
 } from './paymentUtils';
 
 // ========== NOTIFICATIONS ==========
@@ -116,29 +116,8 @@ export {
  * These are the most commonly used functions your co-founder will need.
  * Perfect for getting started quickly.
  */
-export const QuickStart = {
-  // Task management
-  tasks: {
-    create: createTask,
-    accept: acceptTask,
-    lifecycle: TaskLifecycle,
-  },
-  
-  // User management - implement your own auth functions
-  // auth: { ... },
-  
-  // Notifications
-  notifications: {
-    setup: setupNotifications,
-    requestPermissions,
-  },
-  
-  // Payments
-  payments: {
-    createIntent: createPaymentIntent,
-    completeFlow: completeTaskPaymentFlow,
-  }
-};
+// QuickStart object removed to avoid undefined function references
+// Use individual imports instead: import { createTask, acceptTask } from '@/src/api';
 
 /**
  * 📚 USAGE EXAMPLES
@@ -237,13 +216,56 @@ export {
 } from './test-api';
 
 // ========== TYPE DEFINITIONS ==========
-export * from './types';
+export { 
+  type ApiResponse as ApiResponseType,
+  type PaginatedResponse,
+  type User,
+  type AuthSession,
+  type LoginCredentials,
+  type SignUpData,
+  type TaskStatus,
+  type TaskType,
+  type Task,
+  type CreateTaskRequest,
+  type TaskFilters,
+  type PaymentStatus,
+  type Payment,
+  type PaymentIntent,
+  type BillingDetails,
+  type NotificationType,
+  type PushNotification,
+  type NotificationPreferences,
+  type FCMToken,
+  type TaskReview,
+  type UserRating,
+  type ApiError,
+  type ValidationError,
+  type Location,
+  type LocationPermission,
+  type TimestampedEntity,
+  type PaginationParams,
+  type SearchParams,
+  type UseApiResult,
+  type UseInfiniteApiResult,
+  type TaskFormData,
+  type ProfileFormData,
+  type SocketEvent,
+  type TaskUpdateEvent,
+  type AsyncResult,
+  type OptionalAsync,
+  type EntityId,
+  type Timestamp,
+  TASK_STATUSES,
+  PAYMENT_STATUSES,
+  NOTIFICATION_TYPES,
+  isUser,
+  isTask,
+  isApiError,
+  isSuccessResponse,
+  isErrorResponse
+} from './types';
 
-// ========== IMPORT SHORTCUTS ==========
-
-// Re-export common types for convenience
-import type { CreateTaskData, Task, UserProfile, PaymentIntentData } from './taskUtils';
-export type { CreateTaskData, Task, UserProfile, PaymentIntentData };
+// CreateTaskData is already exported from taskUtils above
 
 /**
  * 🎉 ALL SET!

@@ -9,7 +9,7 @@
 // For local development, use your computer's IP address (not localhost)
 // For production, use your deployed backend URL
 export const API_CONFIG = {
-  BASE_URL: 'http://localhost:3000', // Change this to your backend URL
+  BASE_URL: 'http://localhost:3000', // Backend running on port 3000
   ENDPOINTS: {
     // Task endpoints
     TASKS: {

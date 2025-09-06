@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
+import { createTask, type CreateTaskData, type Task as ApiTask } from '@/src/api'
 
 export type Task = {
     id: number,
@@ -101,28 +102,63 @@ export const useTaskStore = create<TaskStore>()(devtools((set, get) => ({
 
     resetDraft: () => set({ draft: { ...defaultDraft } }),
 
-    postTask: () => {
-        // Close sheet and enter matching state (simulated)
+    postTask: async () => {
+        const { draft } = get()
+        
+        // Close sheet and enter matching state
         set({ isNewTaskSheetOpen: false, matching: { isMatching: true, notifiedCount: 0, etaRangeText: '~2–5 min' } })
 
-        // Simulate live updates to notifiedCount
-        let count = 0
-        const interval = setInterval(() => {
-            const { matching } = get()
-            if (!matching.isMatching) {
-                clearInterval(interval)
-                return
+        try {
+            // Create the actual task using API
+            const taskData: CreateTaskData = {
+                customerId: '00000000-0000-0000-0000-000000000001', // TODO: Replace with actual user ID when auth is ready
+                title: draft.description,
+                description: draft.description,
+                taskAddress: draft.address,
+                fixedPrice: draft.budget.max, // Using max budget as fixed price for now
+                taskType: draft.isNow ? 'on_demand' : 'scheduled'
             }
-            count = Math.min(count + Math.ceil(Math.random() * 3), 12)
-            set({ matching: { ...matching, notifiedCount: count } })
-        }, 800)
 
-        // Optionally simulate a match found after a short delay
-        setTimeout(() => {
-            const { matching } = get()
-            if (!matching.isMatching) return
-            get().simulateMatchFound()
-        }, 5000)
+            const result = await createTask(taskData)
+            
+            if (result.success && result.data) {
+                console.log('✅ Task created successfully:', result.data.task.id)
+                
+                // Simulate live updates to notifiedCount to show activity
+                let count = 0
+                const interval = setInterval(() => {
+                    const { matching } = get()
+                    if (!matching.isMatching) {
+                        clearInterval(interval)
+                        return
+                    }
+                    count = Math.min(count + Math.ceil(Math.random() * 3), 12)
+                    set({ matching: { ...matching, notifiedCount: count } })
+                }, 800)
+
+                // Reset draft after successful creation
+                get().resetDraft()
+                
+                // TODO: Set up real-time listening for task updates
+                // For now, simulate match found after delay
+                setTimeout(() => {
+                    const { matching } = get()
+                    if (!matching.isMatching) return
+                    get().simulateMatchFound()
+                }, 8000)
+                
+            } else {
+                console.error('❌ Failed to create task:', result.error)
+                // Exit matching state on error
+                set({ matching: { isMatching: false, notifiedCount: 0, etaRangeText: undefined } })
+                // TODO: Show error message to user
+            }
+        } catch (error) {
+            console.error('❌ Error creating task:', error)
+            // Exit matching state on error
+            set({ matching: { isMatching: false, notifiedCount: 0, etaRangeText: undefined } })
+            // TODO: Show error message to user
+        }
     },
 
     cancelMatching: () => set({ matching: { isMatching: false, notifiedCount: 0, etaRangeText: undefined } }),
