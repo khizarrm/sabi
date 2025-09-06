@@ -14,34 +14,62 @@ export function WaitlistForm({ compact = false }: WaitlistFormProps) {
   const [email, setEmail] = useState("")
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [waitlistCount, setWaitlistCount] = useState(0)
+  const [waitlistCount, setWaitlistCount] = useState<number | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return
 
     const urlParams = new URLSearchParams(window.location.search)
+    const emailFromUrl = urlParams.get("email");
+
+    const addEmailToWaitlist = async (email: string, source: string = "stripe_checkout") => {
+      try {
+        const response = await fetch("/api/waitlist-signup", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, source }),
+        });
+        if (!response.ok) {
+          throw new Error("Failed to add email to waitlist");
+        }
+        console.log("Email successfully added to waitlist (from stripe callback)");
+      } catch (error) {
+        console.error("Error adding email to waitlist (from stripe callback):", error);
+      }
+    };
+
     if (urlParams.get("success") === "true") {
-      const emailFromUrl = urlParams.get("email")
       if (emailFromUrl && emailFromUrl.trim()) {
         try {
-          setEmail(decodeURIComponent(emailFromUrl))
-          setIsSubmitted(true)
-          // Clean up URL
-          window.history.replaceState({}, "", window.location.pathname)
+          setEmail(decodeURIComponent(emailFromUrl));
+          setIsSubmitted(true);
+          addEmailToWaitlist(decodeURIComponent(emailFromUrl), "stripe_success"); // Add to waitlist after successful stripe
+          window.history.replaceState({}, "", window.location.pathname);
         } catch (error) {
-          console.error("Error decoding email from URL:", error)
+          console.error("Error decoding email from URL:", error);
         }
       }
     }
 
-    const baseCount = 0
-    const randomIncrement = Math.floor(Math.random() * 5) + 1
-    setWaitlistCount(baseCount + randomIncrement)
+    const fetchWaitlistCount = async () => {
+      console.log("Attempting to fetch waitlist count...");
+      try {
+        const response = await fetch("/api/waitlist-count");
+        if (!response.ok) {
+          throw new Error("Failed to fetch waitlist count");
+        }
+        const data = await response.json();
+        setWaitlistCount(data.count);
+      } catch (error) {
+        console.error("Error fetching waitlist count:", error);
+        setWaitlistCount(null); // Set to null on error
+      }
+    };
 
-    // Simulate real-time updates
-    const interval = setInterval(() => {
-      setWaitlistCount((prev) => prev + Math.floor(Math.random() * 3))
-    }, 30000) // Update every 30 seconds
+    fetchWaitlistCount(); // Initial fetch
+    const interval = setInterval(fetchWaitlistCount, 30000); // Poll every 30 seconds
 
     return () => clearInterval(interval)
   }, [])
@@ -50,35 +78,56 @@ export function WaitlistForm({ compact = false }: WaitlistFormProps) {
     e.preventDefault()
     if (!email) return
 
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
-      const response = await fetch("/api/create-checkout", {
+      // Always add to waitlist first, regardless of Stripe or compact form
+      const waitlistSignupResponse = await fetch("/api/waitlist-signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email }),
-      })
+        body: JSON.stringify({ email, source: compact ? "compact_form" : "stripe_pre_checkout" }),
+      });
 
-      if (!response.ok) {
-        throw new Error("Failed to create checkout session")
+      if (!waitlistSignupResponse.ok) {
+        throw new Error("Failed to add email to waitlist initially");
       }
+      console.log("Email successfully added to waitlist (pre-checkout)");
 
-      const { url } = await response.json()
-
-      if (url) {
-        window.open(url, "_blank", "noopener,noreferrer")
+      if (compact) {
+        // If compact form, we are done after adding to waitlist
+        setIsSubmitted(true);
+        alert("Successfully joined the waitlist!");
       } else {
-        throw new Error("No checkout URL received")
+        // Proceed with Stripe checkout if not compact
+        const response = await fetch("/api/create-checkout", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to create checkout session");
+        }
+
+        const { url } = await response.json();
+
+        if (url) {
+          window.open(url, "_blank", "noopener,noreferrer");
+        } else {
+          throw new Error("No checkout URL received");
+        }
       }
     } catch (error) {
-      console.error("Checkout error:", error)
-      alert("There was an error processing your request. Please try again.")
+      console.error("Submission error:", error);
+      alert("There was an error processing your request. Please try again.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   if (isSubmitted) {
     return (
@@ -87,8 +136,12 @@ export function WaitlistForm({ compact = false }: WaitlistFormProps) {
           <div className="text-center space-y-6">
             <CheckCircle className="w-16 h-16 text-[#004225] mx-auto animate-pulse-slow" />
             <div className="space-y-3">
-              <h3 className="text-2xl font-jost font-medium text-white">Payment Successful!</h3>
-              <p className="text-white/60 font-light">You're now on the Sabi waitlist</p>
+              <h3 className="text-2xl font-jost font-medium text-white">Success!</h3>
+              <p className="text-white/60 font-light">
+                {compact
+                  ? "You've successfully joined the waitlist!"
+                  : "Payment Successful! You're now on the Sabi waitlist"}
+              </p>
               <div className="flex items-center justify-center gap-2 text-[#004225] font-medium">
                 <Users className="w-4 h-4" />
               </div>
@@ -96,7 +149,7 @@ export function WaitlistForm({ compact = false }: WaitlistFormProps) {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -104,6 +157,13 @@ export function WaitlistForm({ compact = false }: WaitlistFormProps) {
       <div className="text-center">
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#004225]/20 backdrop-blur-sm rounded-full border border-[#004225]/30">
           <Users className="w-4 h-4 text-[#004225]" />
+          {waitlistCount !== null ? (
+            <span className="text-[#004225] text-sm font-medium">
+              Join 15+ others
+            </span>
+          ) : (
+            <span className="text-[#004225] text-sm font-medium">Loading...</span>
+          )}
         </div>
       </div>
 
@@ -131,7 +191,7 @@ export function WaitlistForm({ compact = false }: WaitlistFormProps) {
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 </div>
               ) : (
-                <CreditCard className="w-5 h-5" />
+                compact ? "Join Waitlist" : <CreditCard className="w-5 h-5" />
               )}
             </Button>
           </div>
@@ -139,11 +199,15 @@ export function WaitlistForm({ compact = false }: WaitlistFormProps) {
       </form>
 
       <div className="text-center space-y-2">
-        <p className="text-white/60 text-lg font-medium">$10 CAD to join</p>
+        {compact ? (
+          <p className="text-white/60 text-lg font-medium">Join our waitlist for early access</p>
+        ) : (
+          <p className="text-white/60 text-lg font-medium">$10 CAD to join</p>
+        )}
         <p className="text-white/40 text-sm font-light tracking-wide">
           Early access • Priority matching • Free first task
         </p>
       </div>
     </div>
-  )
+  );
 }
