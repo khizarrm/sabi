@@ -15,10 +15,14 @@ export default function NewTaskSheet() {
   const postTask = useTaskStore((s) => s.postTask)
 
   const sheetRef = useRef<BottomSheetModal>(null)
-  const snapPoints = useMemo(() => ['45%', '80%'], [])
+  const snapPoints = useMemo(() => ['65%', '92%'], [])
 
   const onPresent = useCallback(() => sheetRef.current?.present(), [])
   const onDismiss = useCallback(() => sheetRef.current?.dismiss(), [])
+
+  const snapToExpanded = useCallback(() => {
+    sheetRef.current?.expand()
+  }, [])
 
   React.useEffect(() => {
     if (sheetOpen) onPresent()
@@ -37,6 +41,7 @@ export default function NewTaskSheet() {
     <BottomSheetModal
       ref={sheetRef}
       snapPoints={snapPoints}
+      index={0}
       enablePanDownToClose
       onDismiss={closeSheet}
       backgroundStyle={styles.sheetBackground}
@@ -57,6 +62,7 @@ export default function NewTaskSheet() {
             style={styles.input}
             placeholderTextColor="#9CA3AF"
             returnKeyType="next"
+            onFocus={snapToExpanded}
           />
         </RNView>
 
@@ -84,6 +90,7 @@ export default function NewTaskSheet() {
             style={styles.input}
             placeholderTextColor="#9CA3AF"
             returnKeyType="next"
+            onFocus={snapToExpanded}
           />
         </RNView>
 
@@ -98,6 +105,7 @@ export default function NewTaskSheet() {
               style={styles.input}
               placeholderTextColor="#9CA3AF"
               returnKeyType="next"
+              onFocus={snapToExpanded}
             />
           </RNView>
           <RNView style={[styles.inputWrap, styles.inlineInput]}> 
@@ -109,6 +117,7 @@ export default function NewTaskSheet() {
               style={styles.input}
               placeholderTextColor="#9CA3AF"
               returnKeyType="done"
+              onFocus={snapToExpanded}
             />
           </RNView>
         </RNView>
@@ -127,9 +136,16 @@ export default function NewTaskSheet() {
 
 const styles = StyleSheet.create({
   sheetBackground: {
-    borderTopLeftRadius: 18,
-    borderTopRightRadius: 18,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: Colors.light.primary,
+    shadowColor: 'rgba(0,0,0,0.2)',
+    shadowOpacity: 1,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: -8 },
+    elevation: 30,
   },
   handle: {
     backgroundColor: '#E5E7EB',
@@ -137,7 +153,8 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 16,
-    paddingBottom: 20,
+    paddingBottom: 24,
+    paddingTop: 12,
   },
   title: {
     fontFamily: 'Jost_700Bold',
@@ -154,11 +171,16 @@ const styles = StyleSheet.create({
   inputWrap: {
     borderWidth: 1,
     borderColor: '#E5E7EB',
-    borderRadius: 12,
+    borderRadius: 16,
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 12,
     paddingVertical: Platform.select({ ios: 12, default: 8 }),
     marginBottom: 12,
+    shadowColor: 'rgba(0,0,0,0.08)',
+    shadowOpacity: 1,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
   },
   input: {
     fontSize: 15,
@@ -187,6 +209,7 @@ const styles = StyleSheet.create({
   },
   toggleOn: {
     borderColor: Colors.light.tint,
+    backgroundColor: Colors.light.primarySoft,
   },
   toggleText: {
     color: '#374151',
@@ -199,8 +222,13 @@ const styles = StyleSheet.create({
     marginTop: 6,
     backgroundColor: Colors.light.tint,
     paddingVertical: 12,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
+    shadowColor: 'rgba(0,0,0,0.2)',
+    shadowOpacity: 1,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 10,
   },
   primaryBtnDisabled: {
     backgroundColor: '#A7F3D0',

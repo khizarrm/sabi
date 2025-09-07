@@ -12,6 +12,7 @@ import BottomSheet, { BottomSheetModal, BottomSheetView, BottomSheetTextInput } 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import useAuth from '@/src/hooks/useAuth';
 import { router } from 'expo-router';
+import Colors from '@/constants/Colors';
 
 type AuthModalProps = {
   initialMode?: 'login' | 'signup';
@@ -30,15 +31,16 @@ const AuthModal = forwardRef<AuthModalRef, AuthModalProps>(({ initialMode = 'log
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
+  const [focused, setFocused] = useState<'name' | 'email' | 'password' | 'confirm' | undefined>(undefined);
   const { login, isLoading } = useAuth();
   const insets = useSafeAreaInsets();
   
   // Bottom sheet ref
   const bottomSheetModalRef = React.useRef<BottomSheetModal>(null);
 
-  // Snap points - dynamic based on mode
+  // Snap points - dynamic based on mode (collapsed + expanded)
   const snapPoints = useMemo(() => {
-    return mode === 'signup' ? ['75%'] : ['65%'];
+    return mode === 'signup' ? ['70%', '92%'] : ['60%', '92%'];
   }, [mode]);
 
   // Expose methods to parent
@@ -110,6 +112,10 @@ const AuthModal = forwardRef<AuthModalRef, AuthModalProps>(({ initialMode = 'log
     setMode(mode === 'login' ? 'signup' : 'login');
   }, [mode, resetForm]);
 
+  const snapToExpanded = useCallback(() => {
+    bottomSheetModalRef.current?.expand();
+  }, []);
+
   // Render backdrop
   const renderBackdrop = useCallback(
     (props: any) => (
@@ -128,7 +134,7 @@ const AuthModal = forwardRef<AuthModalRef, AuthModalProps>(({ initialMode = 'log
       snapPoints={snapPoints}
       enablePanDownToClose
       enableDynamicSizing={false}
-      keyboardBehavior="fillParent"
+      keyboardBehavior="interactive"
       keyboardBlurBehavior="restore"
       android_keyboardInputMode="adjustResize"
       backdropComponent={renderBackdrop}
@@ -158,7 +164,7 @@ const AuthModal = forwardRef<AuthModalRef, AuthModalProps>(({ initialMode = 'log
         {/* Form */}
         <View style={styles.form}>
           {mode === 'signup' && (
-            <View style={styles.inputContainer}>
+            <View style={[styles.inputContainer, focused === 'name' && styles.inputFocused]}>
               <Ionicons name="person-outline" size={20} color="#666" style={styles.inputIcon} />
               <BottomSheetTextInput
                 style={styles.input}
@@ -168,11 +174,13 @@ const AuthModal = forwardRef<AuthModalRef, AuthModalProps>(({ initialMode = 'log
                 onChangeText={setName}
                 autoCapitalize="words"
                 editable={!isLoading}
+                onFocus={() => { snapToExpanded(); setFocused('name'); }}
+                onBlur={() => setFocused(undefined)}
               />
             </View>
           )}
 
-          <View style={styles.inputContainer}>
+          <View style={[styles.inputContainer, focused === 'email' && styles.inputFocused]}>
             <Ionicons name="mail-outline" size={20} color="#666" style={styles.inputIcon} />
             <BottomSheetTextInput
               style={styles.input}
@@ -184,10 +192,12 @@ const AuthModal = forwardRef<AuthModalRef, AuthModalProps>(({ initialMode = 'log
               autoCapitalize="none"
               autoCorrect={false}
               editable={!isLoading}
+              onFocus={() => { snapToExpanded(); setFocused('email'); }}
+              onBlur={() => setFocused(undefined)}
             />
           </View>
 
-          <View style={styles.inputContainer}>
+          <View style={[styles.inputContainer, focused === 'password' && styles.inputFocused]}>
             <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
             <BottomSheetTextInput
               style={styles.input}
@@ -198,11 +208,13 @@ const AuthModal = forwardRef<AuthModalRef, AuthModalProps>(({ initialMode = 'log
               secureTextEntry
               autoCapitalize="none"
               editable={!isLoading}
+              onFocus={() => { snapToExpanded(); setFocused('password'); }}
+              onBlur={() => setFocused(undefined)}
             />
           </View>
 
           {mode === 'signup' && (
-            <View style={styles.inputContainer}>
+            <View style={[styles.inputContainer, focused === 'confirm' && styles.inputFocused]}>
               <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
               <BottomSheetTextInput
                 style={styles.input}
@@ -213,6 +225,8 @@ const AuthModal = forwardRef<AuthModalRef, AuthModalProps>(({ initialMode = 'log
                 secureTextEntry
                 autoCapitalize="none"
                 editable={!isLoading}
+                onFocus={() => { snapToExpanded(); setFocused('confirm'); }}
+                onBlur={() => setFocused(undefined)}
               />
             </View>
           )}
@@ -265,8 +279,15 @@ const styles = StyleSheet.create({
   },
   bottomSheetBackground: {
     backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderWidth: 2,
+    borderColor: Colors.light.primary,
+    shadowColor: 'rgba(0,0,0,0.2)',
+    shadowOpacity: 1,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: -8 },
+    elevation: 30,
   },
   handleIndicator: {
     backgroundColor: '#E5E7EB',
@@ -276,8 +297,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   contentContainer: {
-    paddingHorizontal: 24,
-    paddingTop: 8,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 24,
   },
   header: {
     flexDirection: 'row',
@@ -305,12 +327,21 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: '#E5E7EB',
-    borderRadius: 12,
-    backgroundColor: '#F9FAFB',
-    paddingHorizontal: 16,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 14,
     height: 52,
+    shadowColor: 'rgba(0,0,0,0.08)',
+    shadowOpacity: 1,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+  inputFocused: {
+    borderColor: Colors.light.primary,
+    backgroundColor: Colors.light.primarySoft,
   },
   inputIcon: {
     marginRight: 12,
@@ -322,20 +353,20 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
   },
   actionButton: {
-    backgroundColor: '#059669',
+    backgroundColor: Colors.light.primary,
     height: 52,
-    borderRadius: 12,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
-    shadowColor: '#059669',
+    shadowColor: 'rgba(0,0,0,0.2)',
     shadowOffset: {
       width: 0,
       height: 4,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOpacity: 1,
+    shadowRadius: 16,
+    elevation: 10,
   },
   actionButtonText: {
     color: '#FFFFFF',
