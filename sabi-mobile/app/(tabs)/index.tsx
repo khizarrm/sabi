@@ -1,6 +1,5 @@
 import React from 'react';
-import { StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
-import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
+import { StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { View } from '@/components/Themed';
@@ -13,14 +12,6 @@ import ActiveTaskCard from '@/components/home/ActiveTaskCard';
 import Colors from '@/constants/Colors';
 
 export default function HomeScreen() {
-  const scrollY = useSharedValue(0);
-
-  const onScroll = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollY.value = event.contentOffset.y;
-    },
-  });
-
   return (
     <View style={styles.container}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
@@ -29,18 +20,16 @@ export default function HomeScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           keyboardVerticalOffset={Platform.select({ ios: 10, default: 0 }) as number}
         >
-          <Animated.ScrollView
+          <ScrollView
             style={styles.scroll}
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={styles.scrollContent}
-            onScroll={onScroll}
-            scrollEventThrottle={16}
           >
-            <HomeHeader scrollY={scrollY} />
+            <HomeHeader />
             <TaskSearchBar />
             <TaskSuggestions />
             <ActiveTaskCard />
-          </Animated.ScrollView>
+          </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
 
