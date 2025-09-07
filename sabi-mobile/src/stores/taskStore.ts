@@ -168,7 +168,7 @@ export const useTaskStore = create<TaskStore>()(devtools((set, get) => ({
         activeTask: {
             id: Date.now(),
             name: state.draft.description || 'New task',
-            taskerName: 'Alex T.',
+            taskerName: 'Divine',
             etaMinutes: 7,
             status: 'assigned',
         },

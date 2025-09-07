@@ -1,200 +1,158 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, FlatList, View as RNView, RefreshControl, Alert } from 'react-native';
+import { StyleSheet, FlatList, View as RNView } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 
 import { Text, View } from '@/components/Themed';
-import { getUserTasks, type Task } from '@/src/api';
+import Colors from '@/constants/Colors';
 
-// Mock user ID for now - will be replaced with real auth
-const TEMP_USER_ID = '00000000-0000-0000-0000-000000000001';
+type Activity = {
+  id: string;
+  title: string;
+  subtitle: string;
+  type: 'booking' | 'completed' | 'payment' | 'info';
+  time: string;
+};
+
+const sampleActivities: Activity[] = [
+  { id: '1', title: 'Booked: Barber', subtitle: 'Today at 3:00 PM', type: 'booking', time: '2h ago' },
+  { id: '2', title: 'House Cleaning', subtitle: 'Marked as completed', type: 'completed', time: 'Yesterday' },
+  { id: '3', title: 'Payment received', subtitle: '$80 from House Cleaning', type: 'payment', time: '2d ago' },
+  { id: '4', title: 'Task matched', subtitle: 'Divine accepted your task', type: 'info', time: '3d ago' },
+];
+
+function ActivityIcon({ type }: { type: Activity['type'] }) {
+  const iconProps = { size: 20, color: Colors.light.primary } as const;
+  switch (type) {
+    case 'booking':
+      return <Ionicons name="calendar-outline" {...iconProps} />;
+    case 'completed':
+      return <Ionicons name="checkmark-done-outline" {...iconProps} />;
+    case 'payment':
+      return <Ionicons name="card-outline" {...iconProps} />;
+    default:
+      return <Ionicons name="information-circle-outline" {...iconProps} />;
+  }
+}
+
+function TypePill({ type }: { type: Activity['type'] }) {
+  const map: Record<Activity['type'], { label: string; bg: string; fg: string }> = {
+    booking: { label: 'Booked', bg: Colors.light.primarySoft, fg: Colors.light.primary },
+    completed: { label: 'Completed', bg: '#E5F2FF', fg: '#1D4ED8' },
+    payment: { label: 'Payment', bg: '#ECFDF5', fg: Colors.light.primary },
+    info: { label: 'Update', bg: '#F3F4F6', fg: '#374151' },
+  };
+  const s = map[type];
+  return (
+    <RNView style={{ backgroundColor: s.bg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999 }}>
+      <Text style={{ color: s.fg, fontFamily: 'Jost_600SemiBold', fontSize: 12 }}>{s.label}</Text>
+    </RNView>
+  );
+}
 
 export default function ActivitiesScreen() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const loadTasks = async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
-
-    try {
-      const result = await getUserTasks(TEMP_USER_ID);
-      
-      if (result.success && result.data) {
-        setTasks(result.data);
-        console.log('✅ Loaded tasks:', result.data.length);
-      } else {
-        console.error('❌ Failed to load tasks:', result.error);
-        Alert.alert('Error', result.error || 'Failed to load tasks');
-      }
-    } catch (error) {
-      console.error('❌ Error loading tasks:', error);
-      Alert.alert('Error', 'Network error - check your connection');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  useEffect(() => {
-    loadTasks();
-  }, []);
-
-  const onRefresh = () => {
-    loadTasks(true);
-  };
-
-  const formatTaskActivity = (task: Task): string => {
-    const price = task.fixed_price || task.agreed_price;
-    const priceText = price ? ` - $${price}` : '';
-    
-    switch (task.status) {
-      case 'posted':
-        return `Posted: ${task.title}${priceText}`;
-      case 'assigned':
-        return `Assigned: ${task.title}${priceText}`;
-      case 'in_progress':
-        return `In Progress: ${task.title}${priceText}`;
-      case 'completed':
-        return `Completed: ${task.title}${priceText}`;
-      case 'cancelled':
-        return `Cancelled: ${task.title}`;
-      default:
-        return `${task.status}: ${task.title}${priceText}`;
-    }
-  };
-
-  const getStatusColor = (status: Task['status']): string => {
-    switch (status) {
-      case 'completed':
-        return '#059669'; // green
-      case 'in_progress':
-        return '#D97706'; // orange
-      case 'assigned':
-        return '#2563EB'; // blue
-      case 'posted':
-        return '#7C3AED'; // purple
-      case 'cancelled':
-        return '#DC2626'; // red
-      default:
-        return '#6B7280'; // gray
-    }
-  };
-
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Recent Activities</Text>
-        <Text style={styles.loadingText}>Loading your tasks...</Text>
-      </View>
-    );
-  }
+  const insets = useSafeAreaInsets();
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Recent Activities</Text>
+    <View style={styles.screen}>
+      <SafeAreaView edges={['top']} style={{ backgroundColor: Colors.light.primary }}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Activity</Text>
+          <Text style={styles.headerSubtitle}>Your recent updates</Text>
+        </View>
+      </SafeAreaView>
+
       <FlatList
-        data={tasks}
+        data={sampleActivities}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
+        contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 140 }]}
         renderItem={({ item }) => (
           <RNView style={styles.card}>
-            <Text style={styles.cardTitle}>{formatTaskActivity(item)}</Text>
-            <Text style={[styles.statusBadge, { color: getStatusColor(item.status) }]}>
-              {item.status.replace('_', ' ').toUpperCase()}
-            </Text>
-            <Text style={styles.cardSubtitle}>
-              {new Date(item.created_at).toLocaleDateString()}
-            </Text>
-            {item.task_address && (
-              <Text style={styles.cardAddress}>{item.task_address}</Text>
-            )}
+            <RNView style={styles.cardRow}>
+              <RNView style={styles.iconWrap}>
+                <ActivityIcon type={item.type} />
+              </RNView>
+              <RNView style={{ flex: 1 }}>
+                <Text style={styles.cardTitle}>{item.title}</Text>
+                <Text style={styles.cardSubtitle}>{item.subtitle}</Text>
+              </RNView>
+              <TypePill type={item.type} />
+            </RNView>
+            <Text style={styles.timestamp}>{item.time}</Text>
           </RNView>
         )}
-        ListEmptyComponent={
-          <RNView style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No tasks yet</Text>
-            <Text style={styles.emptySubtext}>Create your first task to get started!</Text>
-          </RNView>
-        }
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: '#fafafa',
   },
-  title: {
-    fontSize: 22,
-    fontWeight: '700',
-    marginTop: 16,
-    marginBottom: 12,
-    textAlign: 'center',
+  header: {
+    backgroundColor: Colors.light.primary,
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 20,
   },
-  loadingText: {
-    fontSize: 16,
-    color: '#6B7280',
-    textAlign: 'center',
-    marginTop: 32,
+  headerTitle: {
+    fontFamily: 'Jost_700Bold',
+    fontSize: 26,
+    color: '#FFFFFF',
+  },
+  headerSubtitle: {
+    marginTop: 4,
+    color: 'rgba(255,255,255,0.9)',
+    fontFamily: 'Jost_400Regular',
   },
   listContent: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    backgroundColor: '#fafafa',
+    paddingHorizontal: 20,
+    paddingTop: 16,
     gap: 12,
   },
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.light.neutral200,
     padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowColor: 'rgba(0,0,0,0.08)',
+    shadowOpacity: 1,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 6,
   },
-  cardTitle: {
-    fontSize: 16,
-    color: '#111827',
-    fontWeight: '600',
+  cardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 8,
   },
-  statusBadge: {
-    fontSize: 12,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  cardSubtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 4,
-  },
-  cardAddress: {
-    fontSize: 13,
-    color: '#9CA3AF',
-    fontStyle: 'italic',
-  },
-  emptyContainer: {
-    flex: 1,
+  iconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.light.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 60,
+    marginRight: 12,
   },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#6B7280',
-    marginBottom: 8,
+  cardTitle: {
+    fontFamily: 'Jost_700Bold',
+    fontSize: 16,
+    color: Colors.light.neutral800,
   },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#9CA3AF',
-    textAlign: 'center',
+  cardSubtitle: {
+    fontFamily: 'Jost_400Regular',
+    fontSize: 13,
+    color: Colors.light.neutral600,
+    marginTop: 2,
+  },
+  timestamp: {
+    fontFamily: 'Jost_400Regular',
+    fontSize: 12,
+    color: Colors.light.neutral500,
+    marginTop: 2,
   },
 });

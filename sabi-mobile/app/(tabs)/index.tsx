@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
-import { StyleSheet, SafeAreaView, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import React from 'react';
+import { StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { View } from '@/components/Themed';
 import HomeHeader from '@/components/home/HomeHeader';
@@ -8,47 +9,19 @@ import TaskSuggestions from '@/components/home/TaskSuggestions';
 import NewTaskSheet from '@/components/home/NewTaskSheet';
 import MatchingOverlay from '@/components/home/MatchingOverlay';
 import ActiveTaskCard from '@/components/home/ActiveTaskCard';
-import { setupNotifications, requestPermissions } from '@/src/api';
+import Colors from '@/constants/Colors';
 
 export default function HomeScreen() {
-  // Initialize notifications when home screen loads
-  useEffect(() => {
-    const initializeNotifications = async () => {
-      try {
-        console.log('🔔 Initializing notifications...');
-        
-        // Request permissions first
-        const permissionResult = await requestPermissions();
-        if (permissionResult.success && permissionResult.data?.granted) {
-          console.log('✅ Notification permissions granted');
-          
-          // Set up notifications for temp user
-          const setupResult = await setupNotifications('00000000-0000-0000-0000-000000000001');
-          if (setupResult.success) {
-            console.log('✅ Notifications setup completed');
-          } else {
-            console.warn('⚠️ Notifications setup failed:', setupResult.error);
-          }
-        } else {
-          console.warn('⚠️ Notification permissions denied');
-        }
-      } catch (error) {
-        console.error('❌ Error initializing notifications:', error);
-      }
-    };
-
-    initializeNotifications();
-  }, []);
-
   return (
     <View style={styles.container}>
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeAreaView edges={['top']} style={{ flex: 1 }}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           keyboardVerticalOffset={Platform.select({ ios: 10, default: 0 }) as number}
         >
           <ScrollView
+            style={styles.scroll}
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={styles.scrollContent}
           >
@@ -69,6 +42,9 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#fafafa',
+  },
+  scroll: {
     backgroundColor: '#fafafa',
   },
   scrollContent: {

@@ -1,7 +1,6 @@
 import React from 'react'
-import { StyleSheet, Pressable, ScrollView } from 'react-native'
+import { StyleSheet, Pressable } from 'react-native'
 import * as Haptics from 'expo-haptics'
-import FontAwesome from '@expo/vector-icons/FontAwesome'
 import { Text, View } from '@/components/Themed'
 import Colors from '@/constants/Colors'
 import { useTaskStore } from '@/src/stores/taskStore'
@@ -17,39 +16,48 @@ const suggestions = [
 
 export default function TaskSuggestions() {
   const openNewTaskSheet = useTaskStore((s) => s.openNewTaskSheet)
+  const isMatching = useTaskStore((s) => s.matching.isMatching)
+  const activeTask = useTaskStore((s) => s.activeTask)
+
+  const mapToCategory = (title: string): 'Delivery' | 'Clean' | 'Fix' | 'Assemble' | 'Other' | 'Custom' => {
+    const t = title.toLowerCase()
+    if (t.includes('delivery') || t.includes('pickup')) return 'Delivery'
+    if (t.includes('clean')) return 'Clean'
+    if (t.includes('handyman') || t.includes('fix') || t.includes('repair')) return 'Fix'
+    if (t.includes('assemble')) return 'Assemble'
+    return 'Other'
+  }
 
   const handleSuggestionPress = (suggestion: typeof suggestions[0]) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-    openNewTaskSheet({ category: suggestion.title as any })
+    openNewTaskSheet({
+      category: mapToCategory(suggestion.title),
+      description: `${suggestion.title} — ${suggestion.subtitle}`,
+      isNow: true,
+    })
   }
+
+  if (isMatching || activeTask) return null
 
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>Suggestions for you</Text>
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
+      <View style={styles.grid}>
         {suggestions.map((suggestion, index) => (
           <Pressable
             key={suggestion.title}
-            style={styles.suggestionCard}
+            style={[
+              styles.suggestionCard,
+              index % 2 === 0 ? styles.cardLeft : styles.cardRight,
+            ]}
             onPress={() => handleSuggestionPress(suggestion)}
             hitSlop={8}
           >
-            <View style={styles.iconContainer}>
-              <FontAwesome 
-                name={suggestion.icon as any} 
-                size={28} 
-                color={Colors.light.primary}
-              />
-            </View>
             <Text style={styles.suggestionTitle}>{suggestion.title}</Text>
             <Text style={styles.suggestionSubtitle}>{suggestion.subtitle}</Text>
           </Pressable>
         ))}
-      </ScrollView>
+      </View>
     </View>
   )
 }
@@ -67,34 +75,29 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     marginTop: 8,
   },
-  scrollContent: {
+  grid: {
     paddingHorizontal: 20,
-    paddingVertical: 4,
+    paddingBottom: 4,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
   },
   suggestionCard: {
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: Colors.light.neutral200,
-    borderRadius: 20,
-    padding: 20,
-    marginRight: 16,
-    width: 160,
-    height: 140,
-    shadowColor: Colors.light.shadowMedium,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    flexBasis: '48%',
+    minHeight: 120,
+    shadowColor: 'rgba(0,0,0,0.08)',
     shadowOpacity: 1,
     shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 8,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 6,
   },
-  iconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: Colors.light.primarySoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
+  cardLeft: { marginRight: '4%' },
+  cardRight: {},
   suggestionTitle: {
     fontSize: 16,
     fontFamily: 'Jost_700Bold',

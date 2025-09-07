@@ -7,6 +7,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   StatusBar,
+  ImageBackground,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -28,8 +29,11 @@ export default function LoginScreen() {
       <View style={styles.container}>
         {/* Background with gradient overlay */}
         <View style={styles.backgroundContainer}>
-          {/* Replace this View with ImageBackground when you add the image */}
-          <View style={styles.tempBackground} />
+          <ImageBackground
+            source={require('../background-image.png')}
+            style={{ flex: 1 }}
+            resizeMode="cover"
+          />
           <LinearGradient
             colors={['transparent', 'rgba(0,0,0,0.3)', 'rgba(0,0,0,0.6)']}
             locations={[0, 0.4, 1]}
@@ -56,17 +60,17 @@ export default function LoginScreen() {
           {/* Action Buttons */}
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              style={styles.signUpButton}
-              onPress={() => setSignupModalVisible(true)}
-            >
-              <Text style={styles.signUpButtonText}>Sign Up</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
               style={styles.loginButton}
               onPress={() => setLoginModalVisible(true)}
             >
               <Text style={styles.loginButtonText}>Login</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.signUpButton}
+              onPress={() => setSignupModalVisible(true)}
+            >
+              <Text style={styles.signUpButtonText}>Sign Up</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -99,11 +103,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-  },
-  // Temporary background - replace with ImageBackground
-  tempBackground: {
-    flex: 1,
-    backgroundColor: '#8B4513', // Brown color to simulate the door background
   },
   gradientOverlay: {
     position: 'absolute',
@@ -149,11 +148,13 @@ const styles = StyleSheet.create({
   },
   signUpButton: {
     height: 56,
-    width: '85%',
+    width: '72%',
     backgroundColor: 'rgba(255,255,255,0.9)',
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#000000',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -173,11 +174,13 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     height: 56,
-    width: '85%',
-    backgroundColor: '#059669',
+    width: '72%',
+    backgroundColor: '#065f46',
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#000000',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,

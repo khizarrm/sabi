@@ -10,29 +10,34 @@ export default function MatchingOverlay() {
   const matching = useTaskStore((s) => s.matching)
   const cancelMatching = useTaskStore((s) => s.cancelMatching)
 
-  const pulse = useRef(new Animated.Value(0)).current
+  // Indeterminate loading bar animation
+  const progress = useRef(new Animated.Value(0)).current
   useEffect(() => {
     if (!matching.isMatching) return
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulse, { toValue: 1, duration: 1200, useNativeDriver: false }),
-        Animated.timing(pulse, { toValue: 0, duration: 1200, useNativeDriver: false }),
-      ]),
+        Animated.timing(progress, { toValue: 1, duration: 1200, useNativeDriver: true }),
+        Animated.timing(progress, { toValue: 0, duration: 0, useNativeDriver: true }),
+      ])
     )
     loop.start()
     return () => loop.stop()
-  }, [matching.isMatching, pulse])
+  }, [matching.isMatching, progress])
 
   if (!matching.isMatching) return null
 
-  const scale = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.3] })
-  const borderOpacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.3, 0.1] })
+  const trackWidth = width * 0.7
+  const indicatorWidth = trackWidth * 0.38
+  const translateX = progress.interpolate({ inputRange: [0, 1], outputRange: [-indicatorWidth, trackWidth] })
 
   return (
     <View style={styles.overlay}>
-      <Animated.View style={[styles.pulse, { transform: [{ scale }], opacity: borderOpacity }]} />
       <Text style={styles.title}>Notifying nearby taskers…</Text>
       <Text style={styles.subtitle}>Notified {matching.notifiedCount} taskers {matching.etaRangeText ? `• ETA ${matching.etaRangeText}` : ''}</Text>
+
+      <View style={[styles.track, { width: trackWidth }]}> 
+        <Animated.View style={[styles.indicator, { width: indicatorWidth, transform: [{ translateX }] }]} />
+      </View>
 
       <Pressable onPress={cancelMatching} style={styles.cancelBtn}>
         <Text style={styles.cancelText}>Cancel</Text>
@@ -46,15 +51,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.95)',
-  },
-  pulse: {
-    position: 'absolute',
-    width: width * 0.7,
-    height: width * 0.7,
-    borderRadius: (width * 0.7) / 2,
-    borderWidth: 6,
-    borderColor: Colors.light.tint,
+    backgroundColor: '#FFFFFF',
   },
   title: {
     fontFamily: 'Jost_700Bold',
@@ -65,6 +62,24 @@ const styles = StyleSheet.create({
     marginTop: 8,
     color: '#374151',
   },
+  track: {
+    marginTop: 16,
+    height: 12,
+    borderRadius: 999,
+    backgroundColor: '#EFF6F0',
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: 'rgba(0,0,0,0.06)',
+    shadowOpacity: 1,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  indicator: {
+    height: '100%',
+    borderRadius: 999,
+    backgroundColor: Colors.light.tint,
+  },
   cancelBtn: {
     marginTop: 16,
     paddingHorizontal: 16,
@@ -73,6 +88,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E7EB',
     backgroundColor: '#FFFFFF',
+    shadowColor: 'rgba(0,0,0,0.08)',
+    shadowOpacity: 1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
   },
   cancelText: {
     color: '#111827',

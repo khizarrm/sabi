@@ -56,11 +56,11 @@ export default function TabLayout() {
           borderWidth: 1,
           borderColor: Colors.light.glassStroke,
           borderBottomWidth: 0,
-          shadowColor: Colors.light.shadowStrong,
+          shadowColor: 'rgba(0, 0, 0, 0.2)',
           shadowOpacity: 1,
-          shadowRadius: 20,
-          shadowOffset: { width: 0, height: -4 },
-          elevation: 20,
+          shadowRadius: 28,
+          shadowOffset: { width: 0, height: -8 },
+          elevation: 30,
         },
       }}>
       {/* Activities - Left */}

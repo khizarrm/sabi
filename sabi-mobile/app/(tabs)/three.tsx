@@ -1,233 +1,183 @@
-
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, FlatList, View as RNView, RefreshControl, Alert, Pressable } from 'react-native';
+import { StyleSheet, ScrollView, Image, Pressable } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 
 import { Text, View } from '@/components/Themed';
-import { getAvailableTasks, acceptTask, type Task } from '@/src/api';
 import Colors from '@/constants/Colors';
+import useAuth from '@/src/hooks/useAuth';
 
-// Mock user ID for now - will be replaced with real auth
-const TEMP_TASKER_ID = '00000000-0000-0000-0000-000000000002';
-
-export default function AvailableTasksScreen() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [acceptingTaskId, setAcceptingTaskId] = useState<string | null>(null);
-
-  const loadAvailableTasks = async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
-
-    try {
-      const result = await getAvailableTasks();
-      
-      if (result.success && result.data) {
-        setTasks(result.data);
-        console.log('✅ Loaded available tasks:', result.data.length);
-      } else {
-        console.error('❌ Failed to load tasks:', result.error);
-        Alert.alert('Error', result.error || 'Failed to load available tasks');
-      }
-    } catch (error) {
-      console.error('❌ Error loading tasks:', error);
-      Alert.alert('Error', 'Network error - check your connection');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  const handleAcceptTask = async (taskId: string) => {
-    setAcceptingTaskId(taskId);
-
-    try {
-      const result = await acceptTask(taskId, TEMP_TASKER_ID);
-      
-      if (result.success) {
-        Alert.alert('Success', 'Task accepted successfully!');
-        // Remove the task from available tasks list
-        setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
-      } else {
-        Alert.alert('Error', result.error || 'Failed to accept task');
-      }
-    } catch (error) {
-      console.error('❌ Error accepting task:', error);
-      Alert.alert('Error', 'Network error - check your connection');
-    } finally {
-      setAcceptingTaskId(null);
-    }
-  };
-
-  useEffect(() => {
-    loadAvailableTasks();
-  }, []);
-
-  const onRefresh = () => {
-    loadAvailableTasks(true);
-  };
-
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Available Tasks</Text>
-        <Text style={styles.loadingText}>Loading available tasks...</Text>
-      </View>
-    );
-  }
+export default function ProfileScreen() {
+  const { user } = useAuth();
+  const firstName = user?.name ? user.name.split(' ')[0] : 'Guest';
+  const insets = useSafeAreaInsets();
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Available Tasks</Text>
-      <FlatList
-        data={tasks}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        renderItem={({ item }) => (
-          <RNView style={styles.card}>
-            <Text style={styles.cardTitle}>{item.title}</Text>
-            <Text style={styles.cardDescription}>{item.description}</Text>
-            
-            {item.task_address && (
-              <Text style={styles.cardAddress}>📍 {item.task_address}</Text>
-            )}
-            
-            <RNView style={styles.priceRow}>
-              {item.fixed_price && (
-                <Text style={styles.priceText}>${item.fixed_price}</Text>
-              )}
-              <Text style={styles.dateText}>
-                {new Date(item.created_at).toLocaleDateString()}
-              </Text>
-            </RNView>
+    <View style={styles.screen}> 
+      {/* Green header */}
+      <SafeAreaView edges={['top']} style={{ backgroundColor: Colors.light.primary }}>
+        <View style={styles.header}> 
+          <Image source={{ uri: 'https://i.pravatar.cc/160?img=22' }} style={styles.avatar} />
+          <Text style={styles.name}>Hi, {firstName}</Text>
+          <Text style={styles.email}>{user?.email ?? 'Welcome to Sabi'}</Text>
+          <Pressable style={styles.editBtn}>
+            <Text style={styles.editBtnText}>Edit Profile</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
 
-            <Pressable
-              style={[
-                styles.acceptButton,
-                acceptingTaskId === item.id && styles.acceptButtonDisabled
-              ]}
-              onPress={() => handleAcceptTask(item.id)}
-              disabled={acceptingTaskId === item.id}
-            >
-              <Text style={styles.acceptButtonText}>
-                {acceptingTaskId === item.id ? 'Accepting...' : 'Accept Task'}
-              </Text>
+      {/* Content */}
+      <ScrollView style={styles.scroll} contentContainerStyle={{ paddingBottom: insets.bottom + 140 }}>
+        {/* Sections */}
+          <View style={styles.section}> 
+            <View style={styles.sectionTitleRow}>
+              <Text style={styles.sectionTitle}>Account</Text>
+            </View>
+            <Pressable style={styles.cardRow}>
+              <View style={styles.rowLeft}>
+                <Ionicons name="person-outline" size={20} color={Colors.light.neutral700} style={{ marginRight: 10 }} />
+                <Text style={styles.rowText}>Personal Details</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={Colors.light.neutral400} />
             </Pressable>
-          </RNView>
-        )}
-        ListEmptyComponent={
-          <RNView style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No available tasks</Text>
-            <Text style={styles.emptySubtext}>
-              Check back later for new opportunities!
-            </Text>
-          </RNView>
-        }
-      />
+            <Pressable style={styles.cardRow}>
+              <View style={styles.rowLeft}>
+                <Ionicons name="card-outline" size={20} color={Colors.light.neutral700} style={{ marginRight: 10 }} />
+                <Text style={styles.rowText}>Payment Methods</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={Colors.light.neutral400} />
+            </Pressable>
+            <Pressable style={styles.cardRow}>
+              <View style={styles.rowLeft}>
+                <Ionicons name="notifications-outline" size={20} color={Colors.light.neutral700} style={{ marginRight: 10 }} />
+                <Text style={styles.rowText}>Notifications</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={Colors.light.neutral400} />
+            </Pressable>
+          </View>
+
+          <View style={styles.section}> 
+            <View style={styles.sectionTitleRow}>
+              <Text style={styles.sectionTitle}>Support</Text>
+            </View>
+            <Pressable style={styles.cardRow}>
+              <View style={styles.rowLeft}>
+                <Ionicons name="help-circle-outline" size={20} color={Colors.light.neutral700} style={{ marginRight: 10 }} />
+                <Text style={styles.rowText}>Help & FAQs</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={Colors.light.neutral400} />
+            </Pressable>
+            <Pressable style={styles.cardRow}>
+              <View style={styles.rowLeft}>
+                <Ionicons name="chatbubbles-outline" size={20} color={Colors.light.neutral700} style={{ marginRight: 10 }} />
+                <Text style={styles.rowText}>Contact Support</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={Colors.light.neutral400} />
+            </Pressable>
+          </View>
+
+          <View style={styles.section}> 
+            <Pressable style={[styles.cardRow, styles.logoutRow]}>
+              <View style={styles.rowLeft}>
+                <Ionicons name="log-out-outline" size={20} color={'#EF4444'} style={{ marginRight: 10 }} />
+                <Text style={[styles.rowText, { color: '#EF4444' }]}>Log Out</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={Colors.light.neutral400} />
+            </Pressable>
+          </View>
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: '#fafafa',
   },
-  title: {
-    fontSize: 22,
-    fontWeight: '700',
-    marginTop: 16,
-    marginBottom: 12,
-    textAlign: 'center',
+  scroll: {
+    backgroundColor: '#fafafa',
   },
-  loadingText: {
-    fontSize: 16,
-    color: '#6B7280',
-    textAlign: 'center',
-    marginTop: 32,
-  },
-  listContent: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    gap: 12,
-  },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  cardTitle: {
-    fontSize: 18,
-    color: '#111827',
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  cardDescription: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 12,
-    lineHeight: 20,
-  },
-  cardAddress: {
-    fontSize: 13,
-    color: '#9CA3AF',
-    marginBottom: 12,
-  },
-  priceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  priceText: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: Colors.light.primary,
-  },
-  dateText: {
-    fontSize: 12,
-    color: '#9CA3AF',
-  },
-  acceptButton: {
+  header: {
     backgroundColor: Colors.light.primary,
-    paddingVertical: 12,
     paddingHorizontal: 24,
-    borderRadius: 8,
+    paddingBottom: 28,
+    paddingTop: 24,
     alignItems: 'center',
   },
-  acceptButtonDisabled: {
-    backgroundColor: '#9CA3AF',
+  avatar: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+    marginBottom: 12,
   },
-  acceptButtonText: {
+  name: {
+    fontFamily: 'Jost_700Bold',
+    fontSize: 22,
     color: '#FFFFFF',
+  },
+  email: {
+    marginTop: 4,
+    color: 'rgba(255,255,255,0.9)',
+    fontFamily: 'Jost_400Regular',
+  },
+  editBtn: {
+    marginTop: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 999,
+    borderWidth: 2,
+    borderColor: '#000',
+    shadowColor: 'rgba(0,0,0,0.1)',
+    shadowOpacity: 1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+  },
+  editBtnText: {
+    fontFamily: 'Jost_700Bold',
+    color: Colors.light.neutral800,
+  },
+  section: {
+    paddingHorizontal: 20,
+    marginTop: 20,
+  },
+  sectionTitleRow: {
+    marginBottom: 10,
+  },
+  sectionTitle: {
+    fontFamily: 'Jost_700Bold',
     fontSize: 16,
-    fontWeight: '600',
+    color: Colors.light.neutral700,
   },
-  emptyContainer: {
-    flex: 1,
+  cardRow: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: Colors.light.neutral200,
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    marginBottom: 12,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 60,
+    justifyContent: 'space-between',
+    shadowColor: 'rgba(0,0,0,0.08)',
+    shadowOpacity: 1,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 6,
   },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#6B7280',
-    marginBottom: 8,
+  rowLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#9CA3AF',
-    textAlign: 'center',
+  rowText: {
+    fontFamily: 'Jost_500Medium',
+    fontSize: 15,
+    color: Colors.light.neutral800,
+  },
+  logoutRow: {
+    borderColor: '#FECACA',
   },
 });
